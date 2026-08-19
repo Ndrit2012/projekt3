@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Block Blast</title>
+<style>
+  :root{ --bg:#0b0f2a; --panel:#12182e; --gold:#ffd166; --cyan:#29d5ff; }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+  html,body{width:100%;height:100%;overflow:hidden;background:radial-gradient(1200px 700px at 50% 30%, #131a38, #05060f);font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#fff;}
+  #wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+  #hud{width:min(400px,92vw);display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
+  #hud .title{font-size:26px;font-weight:900;letter-spacing:1px;background:linear-gradient(180deg,#fff,#8fe3ff 55%,#29d5ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #hud .scores{display:flex;gap:14px;align-items:center;}
+  .stat{font-size:12px;color:#9fb6d9;text-align:right;line-height:1.1;}
+  .stat b{display:block;font-size:20px;color:#fff;font-weight:900;}
+  .stat.best b{color:var(--gold);}
+  #restart{background:rgba(0,0,0,.4);border:1px solid #33407a;color:#cfe0ff;width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer;font-weight:700;}
+  #restart:hover{filter:brightness(1.2);}
+  canvas{display:block;border-radius:14px;box-shadow:0 10px 50px rgba(0,0,0,.55);touch-action:none;height:min(74vh,680px);width:auto;}
+  #overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,8,20,.78);backdrop-filter:blur(4px);z-index:20;}
+  #overlay.active{display:flex;}
+  #overlay h2{font-size:40px;background:linear-gradient(180deg,#fff,#ffd166);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;}
+  #overlay p{color:#cfe0ff;font-size:18px;margin:4px 0;}
+  #overlay p b{color:#fff;font-size:22px;}
+  #overlay .btn{margin-top:22px;padding:16px 34px;border:none;border-radius:14px;font-size:20px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px;background:linear-gradient(180deg,#16c172,#0f9d5c);box-shadow:0 6px 0 #0a6b3e, 0 14px 30px rgba(0,0,0,.45);}
+  #overlay .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #0a6b3e;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <div class="title">BLOCK BLAST</div>
+    <div class="scores">
+      <div class="stat">PIKËT<b id="score">0</b></div>
+      <div class="stat best">REKORDI<b id="best">0</b></div>
+      <button id="restart" title="Rifillo">↻</button>
+    </div>
+  </div>
+  <canvas id="cv" width="400" height="700"></canvas>
+</div>
+
+<div id="overlay">
+  <h2>Loja mbaroi!</h2>
+  <p>Pikët: <b id="finalScore">0</b></p>
+  <p>Rekordi: <b id="finalBest">0</b></p>
+  <button class="btn" id="playAgain">▶ Luaj përsëri</button>
+</div>
+
+<script>
+"use strict";
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+
+/* ---------- konstantet ---------- */
+const N = 8;
+const W = 400, H = 700;
+const CELL = 42, GAP = 3;
+const gridPx = N*CELL + (N-1)*GAP;          // 357
+const gridX = Math.round((W - gridPx)/2);    // 21
+const gridY = 12;
+const SLOT_W = 112, SLOT_H = 150, slotY = 430;
+const slotXs = [8, 144, 280];                // 3 slota
+
+const COLORS = ['#ff5e57','#ffa502','#2ed573','#1e90ff','#a55eea','#ff6b81','#0abde3','#feca57','#5f27cd','#10ac84'];
+
+/* ---------- format e copave (qeliza [r,c] relative) ---------- */
+const SHAPES = [
+  [[0,0]],                                              // 1
+  [[0,0],[0,1]],                                        // 1x2
+  [[0,0],[1,0]],                                        // 2x1
+  [[0,0],[0,1],[1,0],[1,1]],                            // 2x2
+  [[0,0],[0,1],[0,2]],                                  // 1x3
+  [[0,0],[1,0],[2,0]],                                  // 3x1
+  [[0,0],[0,1],[0,2],[0,3]],                            // 1x4
+  [[0,0],[1,0],[2,0],[3,0]],                            // 4x1
+  [[0,0],[0,1],[0,2],[0,3],[0,4]],                      // 1x5
+  [[0,0],[1,0],[2,0],[3,0],[4,0]],                      // 5x1
+  [[0,0],[0,1],[1,0]],                                  // L
+  [[0,0],[0,1],[1,1]],
+  [[0,1],[1,0],[1,1]],
+  [[0,0],[1,0],[1,1]],
+  [[0,0],[0,1],[0,2],[1,0],[2,0]],                      // L e madhe
+  [[0,0],[0,1],[0,2],[1,2],[2,2]],
+  [[0,0],[1,0],[2,0],[2,1],[2,2]],
+  [[0,2],[1,2],[2,2],[2,1],[2,0]],
+  [[0,0],[0,1],[0,2],[1,1]],                            // T
+  [[0,1],[1,0],[1,1],[2,1]],
+  [[0,1],[1,0],[1,1],[1,2]],
+  [[0,0],[1,0],[1,1],[2,0]],
+  [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], // 3x3
+];
+
+function makePiece(cells){
+  let rows = 1, cols = 1;
+  for(const [r,c] of cells){ rows = Math.max(rows, r+1); cols = Math.max(cols, c+1); }
+  return { cells, rows, cols, color: COLORS[(Math.random()*COLORS.length)|0] };
+}
+function randomPiece(){
+  return makePiece(SHAPES[(Math.random()*SHAPES.length)|0]);
+}
+
+/* ---------- gjendja ---------- */
+let board = [], hand = [], score = 0, best = 0, over = false;
+let drag = null;          // {idx,cells,rows,cols,color,x,y,targetR,targetC,valid}
+let flashes = [];         // {r,c,t}
+let fx = [];              // {x,y,text,life,color,size}
+try{ best = +localStorage.getItem('bb_best') || 0; }catch(e){}
+
+function emptyBoard(){ return Array.from({length:N}, ()=>Array(N).fill(0)); }
+function newGame(){
+  board = emptyBoard();
+  hand = [randomPiece(), randomPiece(), randomPiece()];
+  score = 0; over = false;
+  flashes = []; fx = [];
+  $('overlay').classList.remove('active');
+  updateScore();
+}
+
+/* ---------- logjika ---------- */
+function fits(cells, r0, c0){
+  for(const [dr,dc] of cells){
+    const r = r0+dr, c = c0+dc;
+    if(r<0||r>=N||c<0||c>=N) return false;
+    if(board[r][c]) return false;
+  }
+  return true;
+}
+function anyFits(cells, rows, cols){
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(fits(cells,r,c)) return true;
+  return false;
+}
+function clearLines(){
+  const rows=[], cols=[];
+  for(let r=0;r<N;r++) if(board[r].every(v=>v)) rows.push(r);
+  for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!board[r][c]){f=false;break;} if(f) cols.push(c); }
+  if(!rows.length && !cols.length) return null;
+  for(const r of rows) for(let c=0;c<N;c++){ if(board[r][c]) flashes.push({r,c,t:0}); board[r][c]=0; }
+  for(const c of cols) for(let r=0;r<N;r++){ if(board[r][c]) flashes.push({r,c,t:0}); board[r][c]=0; }
+  const lines = rows.length + cols.length;
+  const gain = Math.round(lines * 10 * (1 + (lines-1)*0.5));
+  score += gain;
+  const cx = gridX + gridPx/2;
+  fx.push({x:cx, y:gridY+gridPx/2, text:'+'+gain, life:1, color:'#3ddc84', size:30});
+  if(lines>=2) fx.push({x:cx, y:gridY+gridPx/2-40, text:'COMBO x'+lines+'!', life:1.2, color:'#ffd166', size:22});
+  return {lines, gain};
+}
+function doPlace(d){
+  for(const [dr,dc] of d.cells) board[d.targetR+dr][d.targetC+dc] = d.color;
+  clearLines();
+  hand[d.idx] = randomPiece();
+  updateScore();
+  if(hand.every(p=>!anyFits(p.cells,p.rows,p.cols))) gameOver();
+}
+function gameOver(){
+  over = true;
+  $('finalScore').textContent = score;
+  $('finalBest').textContent = best;
+  $('overlay').classList.add('active');
+}
+function updateScore(){
+  $('score').textContent = score;
+  if(score > best){ best = score; try{ localStorage.setItem('bb_best', best); }catch(e){} }
+  $('best').textContent = best;
+}
+
+/* ---------- input (drag & drop) ---------- */
+function getPos(e){
+  const r = cv.getBoundingClientRect();
+  return { x:(e.clientX-r.left)*(W/r.width), y:(e.clientY-r.top)*(H/r.height) };
+}
+function inSlot(i, x, y){
+  return x >= slotXs[i] && x <= slotXs[i]+SLOT_W && y >= slotY && y <= slotY+SLOT_H;
+}
+cv.addEventListener('pointerdown', e=>{
+  if(over) return;
+  const p = getPos(e);
+  for(let i=0;i<3;i++){
+    if(inSlot(i, p.x, p.y)){
+      const pc = hand[i];
+      drag = { idx:i, cells:pc.cells, rows:pc.rows, cols:pc.cols, color:pc.color, x:p.x, y:p.y, targetR:0, targetC:0, valid:false };
+      cv.setPointerCapture(e.pointerId);
+      return;
+    }
+  }
+});
+cv.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  const p = getPos(e);
+  drag.x = p.x; drag.y = p.y;
+  const pw = drag.cols*CELL + (drag.cols-1)*GAP;
+  const ph = drag.rows*CELL + (drag.rows-1)*GAP;
+  drag.targetC = Math.round((p.x - gridX - pw/2) / (CELL+GAP));
+  drag.targetR = Math.round((p.y - gridY - ph/2) / (CELL+GAP));
+  drag.valid = fits(drag.cells, drag.targetR, drag.targetC);
+});
+function endDrag(e){
+  if(!drag) return;
+  if(drag.valid) doPlace(drag);
+  drag = null;
+}
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+
+/* ---------- render ---------- */
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function drawBlock(x,y,s,color){
+  ctx.fillStyle = color;
+  roundRect(x, y, s, s, 5); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.22)';
+  roundRect(x+3, y+3, s-6, s*0.42, 4); ctx.fill();
+}
+function drawBoard(){
+  ctx.fillStyle = '#0d1220';
+  roundRect(gridX-10, gridY-10, gridPx+20, gridPx+20, 14); ctx.fill();
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+    const x = gridX + c*(CELL+GAP), y = gridY + r*(CELL+GAP);
+    if(board[r][c]) drawBlock(x,y,CELL,board[r][c]);
+    else { ctx.fillStyle='rgba(255,255,255,.05)'; roundRect(x,y,CELL,CELL,5); ctx.fill(); }
+  }
+  if(drag){
+    for(const [dr,dc] of drag.cells){
+      const r = drag.targetR+dr, c = drag.targetC+dc;
+      if(r<0||r>=N||c<0||c>=N) continue;
+      const x = gridX + c*(CELL+GAP), y = gridY + r*(CELL+GAP);
+      ctx.globalAlpha = 0.55;
+      drawBlock(x,y,CELL, drag.valid ? '#3ddc84' : '#ff4d6d');
+      ctx.globalAlpha = 1;
+    }
+  }
+  for(const f of flashes){
+    const x = gridX + f.c*(CELL+GAP), y = gridY + f.r*(CELL+GAP);
+    ctx.globalAlpha = 1 - f.t;
+    drawBlock(x,y,CELL,'#ffffff');
+    ctx.globalAlpha = 1;
+  }
+}
+function drawHand(){
+  for(let i=0;i<3;i++){
+    const p = hand[i];
+    const bs = Math.min(26, 100/Math.max(p.rows,p.cols));
+    const pw = p.cols*bs, ph = p.rows*bs;
+    const cx = slotXs[i] + SLOT_W/2, cy = slotY + SLOT_H/2;
+    ctx.fillStyle = 'rgba(255,255,255,.04)';
+    roundRect(slotXs[i], slotY, SLOT_W, SLOT_H, 16); ctx.fill();
+    if(drag && drag.idx===i){ ctx.globalAlpha = 0.22; }
+    const ox = cx - pw/2, oy = cy - ph/2;
+    for(const [r,c] of p.cells) drawBlock(ox + c*bs, oy + r*bs, bs-2, p.color);
+    ctx.globalAlpha = 1;
+  }
+  if(drag){
+    // copa që ndjek kursorin (semi-transparente)
+    const bs = Math.min(26, 100/Math.max(drag.rows,drag.cols));
+    const pw = drag.cols*bs, ph = drag.rows*bs;
+    ctx.globalAlpha = 0.9;
+    const ox = drag.x - pw/2, oy = drag.y - ph/2;
+    for(const [r,c] of drag.cells) drawBlock(ox + c*bs, oy + r*bs, bs-2, drag.color);
+    ctx.globalAlpha = 1;
+  }
+}
+function drawFx(){
+  for(const f of fx){
+    ctx.globalAlpha = Math.max(0, f.life);
+    ctx.fillStyle = f.color;
+    ctx.font = '900 '+f.size+'px "Segoe UI",Arial,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(f.text, f.x, f.y - (1-f.life)*30);
+    ctx.globalAlpha = 1;
+  }
+}
+let last = 0;
+function frame(t){
+  const dt = Math.min((t-last)/1000, 1/30); last = t;
+  ctx.clearRect(0,0,W,H);
+  drawBoard();
+  drawHand();
+  drawFx();
+  for(const f of flashes) f.t += dt*6;
+  flashes = flashes.filter(f => f.t < 1);
+  for(const f of fx) f.life -= dt*1.6;
+  fx = fx.filter(f => f.life > 0);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- ngjarje ---------- */
+$('restart').onclick = newGame;
+$('playAgain').onclick = newGame;
+
+newGame();
+requestAnimationFrame(t=>{ last=t; requestAnimationFrame(frame); });
+</script>
+</body>
+</html>
