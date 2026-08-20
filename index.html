@@ -10,41 +10,108 @@
   html,body{width:100%;height:100%;overflow:hidden;background:radial-gradient(1200px 700px at 50% 30%, #131a38, #05060f);font-family:'Segoe UI',system-ui,Arial,sans-serif;color:#fff;}
   #wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
   #hud{width:min(400px,92vw);display:flex;align-items:center;justify-content:space-between;padding:0 4px;}
-  #hud .title{font-size:26px;font-weight:900;letter-spacing:1px;background:linear-gradient(180deg,#fff,#8fe3ff 55%,#29d5ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  #hud .scores{display:flex;gap:14px;align-items:center;}
+  #hud .title{font-size:24px;font-weight:900;letter-spacing:1px;background:linear-gradient(180deg,#fff,#8fe3ff 55%,#29d5ff);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap;}
+  #hud .scores{display:flex;gap:12px;align-items:center;}
   .stat{font-size:12px;color:#9fb6d9;text-align:right;line-height:1.1;}
   .stat b{display:block;font-size:20px;color:#fff;font-weight:900;}
   .stat.best b{color:var(--gold);}
-  #restart{background:rgba(0,0,0,.4);border:1px solid #33407a;color:#cfe0ff;width:36px;height:36px;border-radius:10px;font-size:18px;cursor:pointer;font-weight:700;}
-  #restart:hover{filter:brightness(1.2);}
-  canvas{display:block;border-radius:14px;box-shadow:0 10px 50px rgba(0,0,0,.55);touch-action:none;height:min(74vh,680px);width:auto;}
-  #overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,8,20,.78);backdrop-filter:blur(4px);z-index:20;}
-  #overlay.active{display:flex;}
-  #overlay h2{font-size:40px;background:linear-gradient(180deg,#fff,#ffd166);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;}
-  #overlay p{color:#cfe0ff;font-size:18px;margin:4px 0;}
-  #overlay p b{color:#fff;font-size:22px;}
-  #overlay .btn{margin-top:22px;padding:16px 34px;border:none;border-radius:14px;font-size:20px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px;background:linear-gradient(180deg,#16c172,#0f9d5c);box-shadow:0 6px 0 #0a6b3e, 0 14px 30px rgba(0,0,0,.45);}
-  #overlay .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #0a6b3e;}
+  .mini{height:18px;width:18px;object-fit:contain;vertical-align:middle;margin-left:2px;}
+  #hud .btns{display:flex;gap:6px;}
+  #hud button{background:rgba(0,0,0,.4);border:1px solid #33407a;color:#cfe0ff;width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer;font-weight:700;line-height:1;}
+  #hud button:hover{filter:brightness(1.25);}
+  canvas{display:block;border-radius:14px;box-shadow:0 10px 50px rgba(0,0,0,.55);touch-action:none;max-width:96vw;max-height:70vh;width:auto;height:auto;}
+
+  /* ---------- overlays ---------- */
+  .overlay{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,8,20,.82);backdrop-filter:blur(5px);z-index:30;}
+  .overlay.active{display:flex;}
+  .overlay h2{font-size:40px;background:linear-gradient(180deg,#fff,#ffd166);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;}
+  .overlay p{color:#cfe0ff;font-size:18px;margin:4px 0;}
+  .overlay p b{color:#fff;font-size:22px;}
+  #recordMsg{font-size:16px;margin-top:6px;min-height:24px;color:#9fb6d9;}
+  #recordMsg.new{color:var(--gold);font-weight:800;font-size:19px;}
+
+  /* ---------- intro / tutorial ---------- */
+  #intro{position:fixed;inset:0;display:none;background:rgba(5,8,20,.9);backdrop-filter:blur(6px);z-index:30;}
+  #intro.active{display:block;}
+  #helpyWrap{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,0);transition:left .5s ease, top .5s ease;}
+  .bubble{position:relative;max-width:280px;background:#fff;color:#1b2340;padding:13px 17px;border-radius:16px;font-weight:600;font-size:15px;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.45);text-align:center;cursor:pointer;}
+  .bubble::after{content:'';position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:#fff;}
+  .helpy{width:130px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5));cursor:pointer;}
+  .helpy.big{width:170px;}
+  #introBottom{position:absolute;bottom:26px;left:0;right:0;display:flex;gap:12px;justify-content:center;}
+  #introActions{position:absolute;bottom:26px;left:0;right:0;display:none;flex-direction:column;align-items:center;gap:12px;}
+
+  /* ---------- buttons ---------- */
+  .btn{padding:14px 30px;border:none;border-radius:14px;font-size:19px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:.5px;background:linear-gradient(180deg,#16c172,#0f9d5c);box-shadow:0 5px 0 #0a6b3e, 0 12px 26px rgba(0,0,0,.45);}
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 #0a6b3e;}
+  .btn.ghost{background:rgba(255,255,255,.08);box-shadow:none;border:1px solid #33407a;}
+  .btn.vs{background:linear-gradient(180deg,#ff9d2e,#e07000);box-shadow:0 5px 0 #9a4d00, 0 12px 26px rgba(0,0,0,.45);}
+  .btn.vs:active{box-shadow:0 1px 0 #9a4d00;}
+  .row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+  .rwrap{display:flex;flex-direction:column;align-items:center;margin:6px 0;}
+  #vsResultScores{font-size:20px !important;}
 </style>
 </head>
 <body>
 <div id="wrap">
   <div id="hud">
     <div class="title">BLOCK BLAST</div>
-    <div class="scores">
+    <div id="hudSingle" class="scores">
       <div class="stat">PIKËT<b id="score">0</b></div>
       <div class="stat best">REKORDI<b id="best">0</b></div>
+    </div>
+    <div id="hudVs" class="scores" style="display:none">
+      <div class="stat">YOU<b id="vsPscore">0</b></div>
+      <div class="stat">⏱<b id="vsTime">2:00</b></div>
+      <div class="stat best">HELPY <img class="mini" src="assets/Helpy-think.png"><b id="vsHscore">0</b></div>
+    </div>
+    <div class="btns">
+      <button id="btnVersus" title="1v1 vs Helpy">⚔</button>
+      <button id="btnHelp" title="Si luhet?">ⓘ</button>
+      <button id="btnBack" title="Kthehu" style="display:none">✕</button>
       <button id="restart" title="Rifillo">↻</button>
     </div>
   </div>
   <canvas id="cv" width="400" height="700"></canvas>
 </div>
 
-<div id="overlay">
+<!-- single-player game over -->
+<div id="overlay" class="overlay">
   <h2>Loja mbaroi!</h2>
   <p>Pikët: <b id="finalScore">0</b></p>
   <p>Rekordi: <b id="finalBest">0</b></p>
+  <p id="recordMsg"></p>
   <button class="btn" id="playAgain">▶ Luaj përsëri</button>
+</div>
+
+<!-- tutorial / Helpy intro -->
+<div id="intro">
+  <div id="helpyWrap">
+    <div class="bubble" id="bubble"></div>
+    <img class="helpy" id="helpy" src="assets/Helpy-think.png" alt="Helpy">
+  </div>
+  <div id="introBottom">
+    <button class="btn" id="nextBtn">Next ▶</button>
+    <button class="btn ghost" id="skipBtn">Skip ⏭</button>
+  </div>
+  <div id="introActions">
+    <button class="btn" id="btnPlay">▶ Play</button>
+    <button class="btn vs" id="btnVersus2">⚔ 1v1 vs Helpy</button>
+  </div>
+</div>
+
+<!-- versus result -->
+<div id="vsOverlay" class="overlay">
+  <h2 id="vsResultTitle">Barazim!</h2>
+  <div class="rwrap">
+    <div class="bubble" id="bubbleResult"></div>
+    <img class="helpy big" id="helpyResult" src="assets/Helpy-think.png" alt="Helpy">
+  </div>
+  <p id="vsResultScores"></p>
+  <div class="row">
+    <button class="btn vs" id="btnRematch">🔁 Luaj përsëri</button>
+    <button class="btn ghost" id="btnHome">🏠 Kthehu</button>
+  </div>
 </div>
 
 <script>
@@ -54,149 +121,379 @@ const $ = id => document.getElementById(id);
 
 /* ---------- konstantet ---------- */
 const N = 8;
-const W = 400, H = 700;
 const CELL = 42, GAP = 3;
 const gridPx = N*CELL + (N-1)*GAP;          // 357
-const gridX = Math.round((W - gridPx)/2);    // 21
+const gridX = Math.round((400 - gridPx)/2); // 21
 const gridY = 12;
 const SLOT_W = 112, SLOT_H = 150, slotY = 430;
-const slotXs = [8, 144, 280];                // 3 slota
+const slotXs = [8, 144, 280];               // single: 3 slota
+
+const vsGridX1 = 28, vsGridX2 = 395, vsGridY = 55;
+const vsSlotY = 440, vsSlotW = 112, vsSlotH = 130;
+const vsSlotXs = [30, 150, 270];            // player (left)
+const vsSlotXsH = [397, 517, 637];          // helpy (right)
 
 const COLORS = ['#ff5e57','#ffa502','#2ed573','#1e90ff','#a55eea','#ff6b81','#0abde3','#feca57','#5f27cd','#10ac84'];
 
-/* ---------- format e copave (qeliza [r,c] relative) ---------- */
+const ANIM = {
+  think: 'assets/Helpy-think.png',
+  hop:   'assets/Helpy-hop.webp',
+  dance: 'assets/Helpydance.webp',
+  cry:   'assets/Helpy-fail.webp',
+  dance1:'assets/Helpy-dance1.webp',
+  dance3:'assets/Helpy-dance3.webp',
+};
+
+/* ---------- format e copave ---------- */
 const SHAPES = [
-  [[0,0]],                                              // 1
-  [[0,0],[0,1]],                                        // 1x2
-  [[0,0],[1,0]],                                        // 2x1
-  [[0,0],[0,1],[1,0],[1,1]],                            // 2x2
-  [[0,0],[0,1],[0,2]],                                  // 1x3
-  [[0,0],[1,0],[2,0]],                                  // 3x1
-  [[0,0],[0,1],[0,2],[0,3]],                            // 1x4
-  [[0,0],[1,0],[2,0],[3,0]],                            // 4x1
-  [[0,0],[0,1],[0,2],[0,3],[0,4]],                      // 1x5
-  [[0,0],[1,0],[2,0],[3,0],[4,0]],                      // 5x1
-  [[0,0],[0,1],[1,0]],                                  // L
+  [[0,0]],
+  [[0,0],[0,1]],
+  [[0,0],[1,0]],
+  [[0,0],[0,1],[1,0],[1,1]],
+  [[0,0],[0,1],[0,2]],
+  [[0,0],[1,0],[2,0]],
+  [[0,0],[0,1],[0,2],[0,3]],
+  [[0,0],[1,0],[2,0],[3,0]],
+  [[0,0],[0,1],[0,2],[0,3],[0,4]],
+  [[0,0],[1,0],[2,0],[3,0],[4,0]],
+  [[0,0],[0,1],[1,0]],
   [[0,0],[0,1],[1,1]],
   [[0,1],[1,0],[1,1]],
   [[0,0],[1,0],[1,1]],
-  [[0,0],[0,1],[0,2],[1,0],[2,0]],                      // L e madhe
+  [[0,0],[0,1],[0,2],[1,0],[2,0]],
   [[0,0],[0,1],[0,2],[1,2],[2,2]],
   [[0,0],[1,0],[2,0],[2,1],[2,2]],
   [[0,2],[1,2],[2,2],[2,1],[2,0]],
-  [[0,0],[0,1],[0,2],[1,1]],                            // T
+  [[0,0],[0,1],[0,2],[1,1]],
   [[0,1],[1,0],[1,1],[2,1]],
   [[0,1],[1,0],[1,1],[1,2]],
   [[0,0],[1,0],[1,1],[2,0]],
-  [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]], // 3x3
+  [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]],
 ];
 
 function makePiece(cells){
-  let rows = 1, cols = 1;
-  for(const [r,c] of cells){ rows = Math.max(rows, r+1); cols = Math.max(cols, c+1); }
+  let rows=1, cols=1;
+  for(const [r,c] of cells){ rows=Math.max(rows,r+1); cols=Math.max(cols,c+1); }
   return { cells, rows, cols, color: COLORS[(Math.random()*COLORS.length)|0] };
 }
-function randomPiece(){
-  return makePiece(SHAPES[(Math.random()*SHAPES.length)|0]);
-}
+function randomPiece(){ return makePiece(SHAPES[(Math.random()*SHAPES.length)|0]); }
 
 /* ---------- gjendja ---------- */
-let board = [], hand = [], score = 0, best = 0, over = false;
-let drag = null;          // {idx,cells,rows,cols,color,x,y,targetR,targetC,valid}
-let flashes = [];         // {r,c,t}
-let fx = [];              // {x,y,text,life,color,size}
+let mode = 'tutorial';    // 'tutorial' | 'single' | 'versus'
+let sp = null, vsP = null, vsH = null;
+let best = 0;
+let drag = null;          // {idx,cells,rows,cols,color,x,y,p,gx,gy,targetR,targetC,valid}
+let W = 400, H = 700;
+let last = 0;
+let vsTime = 120, vsOver = false, vsWinner = null, vsTimer = null, vsAiTimer = null;
+let tutIndex = 0;
 try{ best = +localStorage.getItem('bb_best') || 0; }catch(e){}
 
 function emptyBoard(){ return Array.from({length:N}, ()=>Array(N).fill(0)); }
-function newGame(){
-  board = emptyBoard();
-  hand = [randomPiece(), randomPiece(), randomPiece()];
-  score = 0; over = false;
-  flashes = []; fx = [];
-  $('overlay').classList.remove('active');
-  updateScore();
+function makePlayer(gx, gy){
+  return { board: emptyBoard(), hand:[randomPiece(),randomPiece(),randomPiece()],
+           score:0, streak:0, newRecord:false, over:false, flashes:[], fx:[], gx, gy };
 }
 
-/* ---------- logjika ---------- */
-function fits(cells, r0, c0){
+/* ---------- logjika (per-player) ---------- */
+function fits(board, cells, r0, c0){
   for(const [dr,dc] of cells){
-    const r = r0+dr, c = c0+dc;
+    const r=r0+dr, c=c0+dc;
     if(r<0||r>=N||c<0||c>=N) return false;
     if(board[r][c]) return false;
   }
   return true;
 }
-function anyFits(cells, rows, cols){
-  for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(fits(cells,r,c)) return true;
+function anyFits(board, cells, rows, cols){
+  for(let r=0;r<N;r++) for(let c=0;c<N;c++) if(fits(board,cells,r,c)) return true;
   return false;
 }
-function clearLines(){
+function isStuck(p){
+  const rem = p.hand.filter(x=>x!==null);
+  return rem.length>0 && rem.every(x=>!anyFits(p.board, x.cells, x.rows, x.cols));
+}
+function clearLines(p){
   const rows=[], cols=[];
-  for(let r=0;r<N;r++) if(board[r].every(v=>v)) rows.push(r);
-  for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!board[r][c]){f=false;break;} if(f) cols.push(c); }
-  if(!rows.length && !cols.length) return null;
-  for(const r of rows) for(let c=0;c<N;c++){ if(board[r][c]) flashes.push({r,c,t:0}); board[r][c]=0; }
-  for(const c of cols) for(let r=0;r<N;r++){ if(board[r][c]) flashes.push({r,c,t:0}); board[r][c]=0; }
-  const lines = rows.length + cols.length;
-  const gain = Math.round(lines * 10 * (1 + (lines-1)*0.5));
-  score += gain;
-  const cx = gridX + gridPx/2;
-  fx.push({x:cx, y:gridY+gridPx/2, text:'+'+gain, life:1, color:'#3ddc84', size:30});
-  if(lines>=2) fx.push({x:cx, y:gridY+gridPx/2-40, text:'COMBO x'+lines+'!', life:1.2, color:'#ffd166', size:22});
-  return {lines, gain};
+  for(let r=0;r<N;r++) if(p.board[r].every(v=>v)) rows.push(r);
+  for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!p.board[r][c]){f=false;break;} if(f) cols.push(c); }
+  if(!rows.length && !cols.length) return 0;
+  for(const r of rows) for(let c=0;c<N;c++){ if(p.board[r][c]) p.flashes.push({r,c,t:0}); p.board[r][c]=0; }
+  for(const c of cols) for(let r=0;r<N;r++){ if(p.board[r][c]) p.flashes.push({r,c,t:0}); p.board[r][c]=0; }
+  return rows.length + cols.length;
 }
-function doPlace(d){
-  for(const [dr,dc] of d.cells) board[d.targetR+dr][d.targetC+dc] = d.color;
-  clearLines();
-  hand[d.idx] = randomPiece();
-  updateScore();
-  if(hand.every(p=>!anyFits(p.cells,p.rows,p.cols))) gameOver();
+function refillIfNeeded(p){
+  if(p.hand.every(x=>x===null)) p.hand=[randomPiece(),randomPiece(),randomPiece()];
 }
-function gameOver(){
-  over = true;
-  $('finalScore').textContent = score;
-  $('finalBest').textContent = best;
-  $('overlay').classList.add('active');
+function placePiece(p, d){
+  for(const [dr,dc] of d.cells) p.board[d.targetR+dr][d.targetC+dc] = d.color;
+  const lines = clearLines(p);
+  const cx = p.gx + gridPx/2, cy = p.gy + gridPx/2;
+  if(lines){
+    p.streak++;
+    const combo = lines>=2 ? lines : 1;
+    const streakMult = p.streak>=2 ? 1+(p.streak-1)*0.5 : 1;
+    const gain = Math.round(lines*100*combo*streakMult);
+    p.score += gain;
+    p.fx.push({x:cx,y:cy,text:'+'+gain,life:1,color:'#3ddc84',size:30});
+    if(lines>=2) p.fx.push({x:cx,y:cy-46,text:'COMBO x'+lines+'!',life:1.3,color:'#ffd166',size:22});
+    if(p.streak>=2) p.fx.push({x:cx,y:cy-86,text:'STREAK x'+p.streak+'!',life:1.5,color:'#ff8fa3',size:20});
+  } else p.streak = 0;
+  p.hand[d.idx] = null;
+  refillIfNeeded(p);
+  return { lines, stuck: isStuck(p) };
 }
-function updateScore(){
-  $('score').textContent = score;
-  if(score > best){ best = score; try{ localStorage.setItem('bb_best', best); }catch(e){} }
-  $('best').textContent = best;
+function linesIfPlaced(board, cells, r0, c0){
+  const rs=new Set(), cs=new Set();
+  for(const [dr,dc] of cells){ rs.add(r0+dr); cs.add(c0+dc); }
+  let lines=0;
+  for(const r of rs){
+    let full=true;
+    for(let c=0;c<N;c++){ if(!board[r][c] && !cells.some(([dr,dc])=>r0+dr===r&&c0+dc===c)){full=false;break;} }
+    if(full) lines++;
+  }
+  for(const c of cs){
+    let full=true;
+    for(let r=0;r<N;r++){ if(!board[r][c] && !cells.some(([dr,dc])=>r0+dr===r&&c0+dc===c)){full=false;break;} }
+    if(full) lines++;
+  }
+  return lines;
 }
 
-/* ---------- input (drag & drop) ---------- */
+/* ---------- single player ---------- */
+function newGame(){
+  sp = makePlayer(gridX, gridY);
+  $('overlay').classList.remove('active');
+  setMode('single');
+  updateScore();
+}
+function updateScore(){
+  $('score').textContent = sp.score;
+  if(sp.score > best){ best = sp.score; sp.newRecord = true; try{ localStorage.setItem('bb_best', best); }catch(e){} }
+  $('best').textContent = best;
+}
+function gameOver(){
+  sp.over = true;
+  $('finalScore').textContent = sp.score;
+  $('finalBest').textContent = best;
+  const rm = $('recordMsg');
+  if(sp.newRecord){ rm.textContent='🎉 Rekord i ri — e kalove rekordin tënd!'; rm.className='new'; }
+  else { rm.textContent='Nuk e kalove rekordin. Provo përsëri!'; rm.className=''; }
+  $('overlay').classList.add('active');
+}
+
+/* ---------- versus ---------- */
+function startVersus(){
+  vsP = makePlayer(vsGridX1, vsGridY);
+  vsH = makePlayer(vsGridX2, vsGridY);
+  vsTime = 120; vsOver = false; vsWinner = null;
+  $('vsOverlay').classList.remove('active');
+  setMode('versus');
+  updateVsHud();
+  if(vsTimer) clearInterval(vsTimer);
+  vsTimer = setInterval(vsTick, 1000);
+  if(vsAiTimer) clearTimeout(vsAiTimer);
+  vsAiTimer = setTimeout(helpyMove, 900);
+}
+function updateVsHud(){
+  $('vsPscore').textContent = vsP.score;
+  $('vsHscore').textContent = vsH.score;
+  const m = Math.floor(vsTime/60), s = vsTime%60;
+  $('vsTime').textContent = m + ':' + (s<10?'0':'') + s;
+}
+function vsTick(){
+  vsTime--;
+  updateVsHud();
+  if(vsTime<=0){ finishVs('time'); return; }
+  if(isStuck(vsP)){ finishVs('helpy'); return; }
+  if(isStuck(vsH)){ finishVs('player'); return; }
+}
+function helpyMove(){
+  if(vsOver) return;
+  const p = vsH;
+  let bestMove = null;
+  for(let i=0;i<3;i++){
+    const pc = p.hand[i];
+    if(!pc) continue;
+    for(let r=0;r<N;r++) for(let c=0;c<N;c++){
+      if(fits(p.board, pc.cells, r, c)){
+        const ln = linesIfPlaced(p.board, pc.cells, r, c);
+        if(!bestMove || ln>bestMove.lines || (ln===bestMove.lines && Math.random()<0.25)){
+          bestMove = { idx:i, cells:pc.cells, rows:pc.rows, cols:pc.cols, color:pc.color, targetR:r, targetC:c, lines:ln };
+        }
+      }
+    }
+  }
+  if(!bestMove){ finishVs('player'); return; }
+  const res = placePiece(p, bestMove);
+  updateVsHud();
+  if(res.stuck){ finishVs('player'); return; }
+  vsAiTimer = setTimeout(helpyMove, 1500 + Math.random()*900);
+}
+function finishVs(winner){
+  if(vsOver) return;
+  vsOver = true;
+  drag = null;
+  if(vsTimer) clearInterval(vsTimer);
+  if(vsAiTimer) clearTimeout(vsAiTimer);
+  if(winner==='time'){
+    winner = vsP.score>vsH.score ? 'player' : vsH.score>vsP.score ? 'helpy' : 'draw';
+  }
+  vsWinner = winner;
+  showVsResult(winner);
+}
+function showVsResult(winner){
+  const img = $('helpyResult'), bubble = $('bubbleResult');
+  if(winner==='helpy'){
+    img.src = Math.random()<0.5 ? ANIM.dance1 : ANIM.dance3;
+    bubble.textContent = 'Yiipeee,i won!';
+    $('vsResultTitle').textContent = 'Helpy fitoi!';
+  } else if(winner==='player'){
+    img.src = ANIM.cry;
+    bubble.textContent = 'Noooooooooo i wanted to win!';
+    $('vsResultTitle').textContent = 'Ti fitove! 🎉';
+  } else {
+    img.src = ANIM.think;
+    bubble.textContent = "It's a tie!";
+    $('vsResultTitle').textContent = 'Barazim!';
+  }
+  $('vsResultScores').textContent = 'Ti: ' + vsP.score + '  ·  Helpy: ' + vsH.score;
+  $('vsOverlay').classList.add('active');
+}
+function exitVersus(){
+  if(vsTimer) clearInterval(vsTimer);
+  if(vsAiTimer) clearTimeout(vsAiTimer);
+  vsOver = true;
+  $('vsOverlay').classList.remove('active');
+  newGame();
+}
+
+/* ---------- tutorial ---------- */
+const TUTORIAL = [
+  { t:"Hi! I'm Helpy! I'll show you how to play Block Blast!", a:'think' },
+  { t:"Drag a block from the bottom into the 8×8 grid to place it.", a:'hop' },
+  { t:"Fill a whole row or column to clear it and score points!", a:'dance' },
+  { t:"Clear 2+ lines at once for a COMBO — extra points!", a:'think' },
+  { t:"Clear lines on back-to-back moves for a STREAK — even more!", a:'hop' },
+  { t:"You must place all 3 blocks before you get new ones.", a:'dance' },
+  { t:"A block that can't fit anywhere turns grey. All 3 grey = game over!", a:'think' },
+  { t:"Beat your best score to set a new record!", a:'hop' },
+  { t:"Ready? Challenge me in 1v1 — 2 minutes, most points wins!", a:'dance' },
+];
+function moveHelpy(x, y){
+  const wrap = $('helpyWrap');
+  wrap.style.left = x+'%';
+  wrap.style.top = y+'%';
+}
+function setTutStep(){
+  const s = TUTORIAL[tutIndex];
+  $('bubble').textContent = s.t;
+  $('helpy').src = ANIM[s.a];
+  moveHelpy(8 + Math.random()*70, 22 + Math.random()*40);
+}
+function showTutorial(){
+  mode = 'tutorial';
+  tutIndex = 0;
+  $('intro').classList.add('active');
+  $('introBottom').style.display = 'flex';
+  $('introActions').style.display = 'none';
+  updateHud();
+  setTutStep();
+}
+function advanceTutorial(){
+  tutIndex++;
+  if(tutIndex >= TUTORIAL.length){
+    $('introBottom').style.display = 'none';
+    $('introActions').style.display = 'flex';
+    $('helpy').src = ANIM.think;
+    $('bubble').textContent = 'Ready?';
+    moveHelpy(50, 34);
+  } else {
+    setTutStep();
+  }
+}
+function skipTutorial(){
+  tutIndex = TUTORIAL.length;
+  advanceTutorial();
+}
+function closeTutorial(){ $('intro').classList.remove('active'); }
+function playSingle(){ closeTutorial(); setMode('single'); }
+function playVersus(){ closeTutorial(); startVersus(); }
+
+/* ---------- mode / hud / canvas ---------- */
+function setMode(m){
+  mode = m;
+  if(m==='versus'){ W=780; H=580; cv.width=W; cv.height=H; $('hud').style.width='min(780px,96vw)'; }
+  else { W=400; H=700; cv.width=W; cv.height=H; $('hud').style.width='min(400px,92vw)'; }
+  updateHud();
+}
+function updateHud(){
+  const vs = mode==='versus';
+  $('hudSingle').style.display = vs ? 'none' : 'flex';
+  $('hudVs').style.display = vs ? 'flex' : 'none';
+  $('btnVersus').style.display = vs ? 'none' : '';
+  $('btnHelp').style.display = vs ? 'none' : '';
+  $('btnBack').style.display = vs ? '' : 'none';
+}
+
+/* ---------- input ---------- */
 function getPos(e){
   const r = cv.getBoundingClientRect();
   return { x:(e.clientX-r.left)*(W/r.width), y:(e.clientY-r.top)*(H/r.height) };
 }
-function inSlot(i, x, y){
-  return x >= slotXs[i] && x <= slotXs[i]+SLOT_W && y >= slotY && y <= slotY+SLOT_H;
+function inSlot(sx, sy, sw, sh, x, y){
+  return x>=sx && x<=sx+sw && y>=sy && y<=sy+sh;
+}
+function startDrag(idx, pc, p, gx, gy, x, y){
+  drag = { idx, cells:pc.cells, rows:pc.rows, cols:pc.cols, color:pc.color, x, y, p, gx, gy, targetR:0, targetC:0, valid:false };
 }
 cv.addEventListener('pointerdown', e=>{
-  if(over) return;
-  const p = getPos(e);
-  for(let i=0;i<3;i++){
-    if(inSlot(i, p.x, p.y)){
-      const pc = hand[i];
-      drag = { idx:i, cells:pc.cells, rows:pc.rows, cols:pc.cols, color:pc.color, x:p.x, y:p.y, targetR:0, targetC:0, valid:false };
-      cv.setPointerCapture(e.pointerId);
-      return;
+  if(mode==='tutorial') return;
+  const pos = getPos(e);
+  if(mode==='single'){
+    if(sp && sp.over) return;
+    for(let i=0;i<3;i++){
+      if(inSlot(slotXs[i], slotY, SLOT_W, SLOT_H, pos.x, pos.y)){
+        const pc = sp.hand[i]; if(!pc) return;
+        startDrag(i, pc, sp, gridX, gridY, pos.x, pos.y);
+        cv.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
+  } else if(mode==='versus'){
+    if(vsOver) return;
+    for(let i=0;i<3;i++){
+      if(inSlot(vsSlotXs[i], vsSlotY, vsSlotW, vsSlotH, pos.x, pos.y)){
+        const pc = vsP.hand[i]; if(!pc) return;
+        startDrag(i, pc, vsP, vsGridX1, vsGridY, pos.x, pos.y);
+        cv.setPointerCapture(e.pointerId);
+        return;
+      }
     }
   }
 });
 cv.addEventListener('pointermove', e=>{
   if(!drag) return;
-  const p = getPos(e);
-  drag.x = p.x; drag.y = p.y;
+  const pos = getPos(e);
+  drag.x=pos.x; drag.y=pos.y;
   const pw = drag.cols*CELL + (drag.cols-1)*GAP;
   const ph = drag.rows*CELL + (drag.rows-1)*GAP;
-  drag.targetC = Math.round((p.x - gridX - pw/2) / (CELL+GAP));
-  drag.targetR = Math.round((p.y - gridY - ph/2) / (CELL+GAP));
-  drag.valid = fits(drag.cells, drag.targetR, drag.targetC);
+  drag.targetC = Math.round((pos.x - drag.gx - pw/2)/(CELL+GAP));
+  drag.targetR = Math.round((pos.y - drag.gy - ph/2)/(CELL+GAP));
+  drag.valid = fits(drag.p.board, drag.cells, drag.targetR, drag.targetC);
 });
 function endDrag(e){
   if(!drag) return;
-  if(drag.valid) doPlace(drag);
+  if(drag.valid){
+    if(mode==='versus'){
+      const res = placePiece(vsP, drag);
+      updateVsHud();
+      if(res.stuck) finishVs('helpy');
+    } else {
+      const res = placePiece(sp, drag);
+      updateScore();
+      if(res.stuck) gameOver();
+    }
+  }
   drag = null;
 }
 cv.addEventListener('pointerup', endDrag);
@@ -210,60 +507,55 @@ function roundRect(x,y,w,h,r){
 }
 function drawBlock(x,y,s,color){
   ctx.fillStyle = color;
-  roundRect(x, y, s, s, 5); ctx.fill();
+  roundRect(x,y,s,s,5); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,.22)';
-  roundRect(x+3, y+3, s-6, s*0.42, 4); ctx.fill();
+  roundRect(x+3,y+3,s-6,s*0.42,4); ctx.fill();
 }
-function drawBoard(){
-  ctx.fillStyle = '#0d1220';
-  roundRect(gridX-10, gridY-10, gridPx+20, gridPx+20, 14); ctx.fill();
+function drawBoard(p){
+  const gx=p.gx, gy=p.gy;
+  ctx.fillStyle='#0d1220';
+  roundRect(gx-10,gy-10,gridPx+20,gridPx+20,14); ctx.fill();
   for(let r=0;r<N;r++) for(let c=0;c<N;c++){
-    const x = gridX + c*(CELL+GAP), y = gridY + r*(CELL+GAP);
-    if(board[r][c]) drawBlock(x,y,CELL,board[r][c]);
+    const x=gx+c*(CELL+GAP), y=gy+r*(CELL+GAP);
+    if(p.board[r][c]) drawBlock(x,y,CELL,p.board[r][c]);
     else { ctx.fillStyle='rgba(255,255,255,.05)'; roundRect(x,y,CELL,CELL,5); ctx.fill(); }
   }
-  if(drag){
+  if(drag && drag.p===p){
     for(const [dr,dc] of drag.cells){
-      const r = drag.targetR+dr, c = drag.targetC+dc;
+      const r=drag.targetR+dr, c=drag.targetC+dc;
       if(r<0||r>=N||c<0||c>=N) continue;
-      const x = gridX + c*(CELL+GAP), y = gridY + r*(CELL+GAP);
-      ctx.globalAlpha = 0.55;
-      drawBlock(x,y,CELL, drag.valid ? '#3ddc84' : '#ff4d6d');
-      ctx.globalAlpha = 1;
+      const x=gx+c*(CELL+GAP), y=gy+r*(CELL+GAP);
+      ctx.globalAlpha=0.55;
+      drawBlock(x,y,CELL, drag.valid?'#3ddc84':'#ff4d6d');
+      ctx.globalAlpha=1;
     }
   }
-  for(const f of flashes){
-    const x = gridX + f.c*(CELL+GAP), y = gridY + f.r*(CELL+GAP);
-    ctx.globalAlpha = 1 - f.t;
+  for(const f of p.flashes){
+    const x=gx+f.c*(CELL+GAP), y=gy+f.r*(CELL+GAP);
+    ctx.globalAlpha=1-f.t;
     drawBlock(x,y,CELL,'#ffffff');
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha=1;
   }
 }
-function drawHand(){
+function drawHandSlots(hand, sx, sy, sw, sh, dragIdx, board){
   for(let i=0;i<3;i++){
     const p = hand[i];
+    ctx.fillStyle='rgba(255,255,255,.04)';
+    roundRect(sx[i], sy, sw, sh, 16); ctx.fill();
+    if(!p) continue;
+    const canPlace = anyFits(board, p.cells, p.rows, p.cols);
     const bs = Math.min(26, 100/Math.max(p.rows,p.cols));
     const pw = p.cols*bs, ph = p.rows*bs;
-    const cx = slotXs[i] + SLOT_W/2, cy = slotY + SLOT_H/2;
-    ctx.fillStyle = 'rgba(255,255,255,.04)';
-    roundRect(slotXs[i], slotY, SLOT_W, SLOT_H, 16); ctx.fill();
-    if(drag && drag.idx===i){ ctx.globalAlpha = 0.22; }
-    const ox = cx - pw/2, oy = cy - ph/2;
-    for(const [r,c] of p.cells) drawBlock(ox + c*bs, oy + r*bs, bs-2, p.color);
-    ctx.globalAlpha = 1;
-  }
-  if(drag){
-    // copa që ndjek kursorin (semi-transparente)
-    const bs = Math.min(26, 100/Math.max(drag.rows,drag.cols));
-    const pw = drag.cols*bs, ph = drag.rows*bs;
-    ctx.globalAlpha = 0.9;
-    const ox = drag.x - pw/2, oy = drag.y - ph/2;
-    for(const [r,c] of drag.cells) drawBlock(ox + c*bs, oy + r*bs, bs-2, drag.color);
-    ctx.globalAlpha = 1;
+    const cx = sx[i]+sw/2, cy = sy+sh/2;
+    const ox = cx-pw/2, oy = cy-ph/2;
+    const color = canPlace ? p.color : '#5f6878';
+    const alpha = (dragIdx===i) ? 0.22 : (canPlace ? 1 : 0.5);
+    for(const [r,c] of p.cells){ ctx.globalAlpha=alpha; drawBlock(ox+c*bs, oy+r*bs, bs-2, color); }
+    ctx.globalAlpha=1;
   }
 }
-function drawFx(){
-  for(const f of fx){
+function drawFx(p){
+  for(const f of p.fx){
     ctx.globalAlpha = Math.max(0, f.life);
     ctx.fillStyle = f.color;
     ctx.font = '900 '+f.size+'px "Segoe UI",Arial,sans-serif';
@@ -272,25 +564,81 @@ function drawFx(){
     ctx.globalAlpha = 1;
   }
 }
-let last = 0;
+function drawStreak(p){
+  if(p.streak < 2) return;
+  const cx = p.gx + gridPx/2, y = p.gy + gridPx + 29;
+  const label = '🔥 STREAK x' + p.streak;
+  ctx.font = '800 18px "Segoe UI",Arial,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const w = ctx.measureText(label).width + 28;
+  ctx.fillStyle = 'rgba(255,143,163,.16)';
+  roundRect(cx-w/2, y-17, w, 34, 17); ctx.fill();
+  ctx.fillStyle = '#ff9fb3';
+  ctx.fillText(label, cx, y+1);
+  ctx.textBaseline = 'alphabetic';
+}
+function drawDragFollower(){
+  if(!drag) return;
+  const bs = Math.min(26, 100/Math.max(drag.rows,drag.cols));
+  const pw = drag.cols*bs, ph = drag.rows*bs;
+  ctx.globalAlpha = 0.9;
+  const ox = drag.x-pw/2, oy = drag.y-ph/2;
+  for(const [r,c] of drag.cells) drawBlock(ox+c*bs, oy+r*bs, bs-2, drag.color);
+  ctx.globalAlpha = 1;
+}
+function drawVersus(){
+  ctx.textAlign='left';
+  ctx.font='800 15px "Segoe UI",Arial,sans-serif';
+  ctx.fillStyle='#9fb6d9';
+  ctx.fillText('YOU', vsGridX1+2, vsGridY-14);
+  ctx.fillText('HELPY', vsGridX2+2, vsGridY-14);
+  drawBoard(vsP);
+  drawBoard(vsH);
+  drawHandSlots(vsP.hand, vsSlotXs, vsSlotY, vsSlotW, vsSlotH, drag?drag.idx:-1, vsP.board);
+  drawHandSlots(vsH.hand, vsSlotXsH, vsSlotY, vsSlotW, vsSlotH, -1, vsH.board);
+  drawFx(vsP);
+  drawFx(vsH);
+}
+function updateFx(p, dt){
+  for(const f of p.flashes) f.t += dt*6;
+  p.flashes = p.flashes.filter(f=>f.t<1);
+  for(const f of p.fx) f.life -= dt*1.6;
+  p.fx = p.fx.filter(f=>f.life>0);
+}
 function frame(t){
-  const dt = Math.min((t-last)/1000, 1/30); last = t;
+  const dt = Math.min((t-last)/1000, 1/30); last=t;
   ctx.clearRect(0,0,W,H);
-  drawBoard();
-  drawHand();
-  drawFx();
-  for(const f of flashes) f.t += dt*6;
-  flashes = flashes.filter(f => f.t < 1);
-  for(const f of fx) f.life -= dt*1.6;
-  fx = fx.filter(f => f.life > 0);
+  if(mode==='versus'){
+    if(vsP) updateFx(vsP,dt);
+    if(vsH) updateFx(vsH,dt);
+    if(vsP) drawVersus();
+  } else {
+    if(sp){ updateFx(sp,dt); drawBoard(sp); drawHandSlots(sp.hand, slotXs, slotY, SLOT_W, SLOT_H, drag?drag.idx:-1, sp.board); drawFx(sp); drawStreak(sp); }
+  }
+  drawDragFollower();
   requestAnimationFrame(frame);
 }
 
 /* ---------- ngjarje ---------- */
-$('restart').onclick = newGame;
+$('restart').onclick = ()=>{ if(mode==='versus') startVersus(); else newGame(); };
 $('playAgain').onclick = newGame;
+$('btnVersus').onclick = ()=>{ startVersus(); };
+$('btnVersus2').onclick = playVersus;
+$('btnHelp').onclick = showTutorial;
+$('btnBack').onclick = exitVersus;
+$('btnPlay').onclick = playSingle;
+$('nextBtn').onclick = advanceTutorial;
+$('skipBtn').onclick = skipTutorial;
+$('bubble').onclick = advanceTutorial;
+$('helpy').onclick = advanceTutorial;
+$('btnRematch').onclick = startVersus;
+$('btnHome').onclick = exitVersus;
 
-newGame();
+/* ---------- init ---------- */
+sp = makePlayer(gridX, gridY);
+updateScore();
+showTutorial();
 requestAnimationFrame(t=>{ last=t; requestAnimationFrame(frame); });
 </script>
 </body>
